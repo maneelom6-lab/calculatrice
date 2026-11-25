@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calculatrice</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="calculatrice" aria-label="Calculatrice">
+    <div class="ecran" aria-live="polite">
+      <div class="historique" id="historique"></div>
+      <div class="resultat" id="resultat">0</div>
+    </div>
+
+    <div class="touches">
+      <button class="effacer" data-action="tout">C</button>
+      <button class="op" data-action="retour" aria-label="Effacer le dernier chiffre">⌫</button>
+      <button class="op" data-action="pourcent">%</button>
+      <button class="op" data-op="/">÷</button>
+
+      <button data-chiffre="7">7</button>
+      <button data-chiffre="8">8</button>
+      <button data-chiffre="9">9</button>
+      <button class="op" data-op="*">×</button>
+
+      <button data-chiffre="4">4</button>
+      <button data-chiffre="5">5</button>
+      <button data-chiffre="6">6</button>
+      <button class="op" data-op="-">−</button>
+
+      <button data-chiffre="1">1</button>
+      <button data-chiffre="2">2</button>
+      <button data-chiffre="3">3</button>
+      <button class="op" data-op="+">+</button>
+
+      <button class="zero" data-chiffre="0">0</button>
+      <button data-action="virgule">,</button>
+      <button class="egal" data-action="egal">=</button>
+    </div>
+  </main>
+
+  <script>
+    const ecranResultat = document.getElementById("resultat");
+    const ecranHistorique = document.getElementById("historique");
+    const symboles = { "+": "+", "-": "−", "*": "×", "/": "÷" };
+
+    let saisie = "0";          // nombre en cours de saisie
+    let precedent = null;      // premier opérande
+    let operateur = null;      // opérateur en attente
+    let nouvelleSaisie = false;
+
+    function formater(texte) {
+      return String(texte).replace(".", ",");
+    }
+
+    function afficher() {
+      ecranResultat.textContent = formater(saisie);
+      ecranHistorique.textContent = operateur
+        ? `${formater(precedent)} ${symboles[operateur]}`
+        : "";
+    }
+
+    function calculer(a, b, op) {
+      a = parseFloat(a);
+      b = parseFloat(b);
+      let r;
+      switch (op) {
+        case "+": r = a + b; break;
+        case "-": r = a - b; break;
+        case "*": r = a * b; break;
+        case "/":
+          if (b === 0) return "Erreur";
+          r = a / b;
+          break;
+      }
+      return String(parseFloat(r.toPrecision(12)));
+    }
+
+    function chiffre(c) {
+      if (saisie === "Erreur") saisie = "0";
+      if (nouvelleSaisie || saisie === "0") {
+        saisie = c;
+        nouvelleSaisie = false;
+      } else {
+        saisie += c;
+      }
+      afficher();
+    }
+
+    function virgule() {
+      if (saisie === "Erreur" || nouvelleSaisie) {
+        saisie = "0";
+        nouvelleSaisie = false;
+      }
+      if (!saisie.includes(".")) saisie += ".";
+      afficher();
+    }
+
+    function choisirOperateur(op) {
+      if (saisie === "Erreur") return;
+      if (operateur && !nouvelleSaisie) {
+        saisie = calculer(precedent, saisie, operateur);
+        if (saisie === "Erreur") { reinitialiserEtat(); afficher(); return; }
+      }
+      precedent = saisie;
+      operateur = op;
+      nouvelleSaisie = true;
+      afficher();
+    }
+
+    function egal() {
+      if (!operateur) return;
+      const expression = `${formater(precedent)} ${symboles[operateur]} ${formater(saisie)} =`;
+      saisie = calculer(precedent, saisie, operateur);
+      operateur = null;
+      precedent = null;
+      nouvelleSaisie = true;
+      ecranResultat.textContent = formater(saisie);
+      ecranHistorique.textContent = expression;
+    }
+
+    function reinitialiserEtat() {
+      precedent = null;
+      operateur = null;
+      nouvelleSaisie = true;
+    }
+
+    function toutEffacer() {
+      saisie = "0";
+      reinitialiserEtat();
+      nouvelleSaisie = false;
+      afficher();
+    }
+
+    function retour() {
+      if (nouvelleSaisie || saisie === "Erreur") return;
+      saisie = saisie.length > 1 ? saisie.slice(0, -1) : "0";
+      afficher();
+    }
+
+    function pourcent() {
+      if (saisie === "Erreur") return;
+      saisie = String(parseFloat((parseFloat(saisie) / 100).toPrecision(12)));
+      afficher();
+    }
+
+    document.querySelector(".touches").addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      if (b.dataset.chiffre) chiffre(b.dataset.chiffre);
+      else if (b.dataset.op) choisirOperateur(b.dataset.op);
+      else if (b.dataset.action === "egal") egal();
+      else if (b.dataset.action === "tout") toutEffacer();
+      else if (b.dataset.action === "retour") retour();
+      else if (b.dataset.action === "virgule") virgule();
+      else if (b.dataset.action === "pourcent") pourcent();
+    });
+
+    // Prise en charge du clavier
+    document.addEventListener("keydown", (e) => {
+      if (/^[0-9]$/.test(e.key)) chiffre(e.key);
+      else if (e.key === "," || e.key === ".") virgule();
+      else if (["+", "-", "*", "/"].includes(e.key)) choisirOperateur(e.key);
+      else if (e.key === "Enter" || e.key === "=") { e.preventDefault(); egal(); }
+      else if (e.key === "Backspace") retour();
+      else if (e.key === "Escape") toutEffacer();
+      else if (e.key === "%") pourcent();
+    });
+
+    afficher();
+  </script>
+</body>
+</html>

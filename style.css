@@ -1,0 +1,128 @@
+/* ===== Couleurs (modifiez-les ici pour changer le thème) ===== */
+:root {
+  --fond: #e9ecef;
+  --boitier: #2b2f36;
+  --ecran: #c9d6c1;
+  --encre: #1d2a1a;
+  --touche: #3a3f47;
+  --touche-texte: #f1f3f5;
+  --operateur: #5b6573;
+  --egal: #e0a030;
+  --egal-texte: #1b1405;
+  --effacer: #b8483c;
+}
+
+/* Thème sombre automatique selon le système */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fond: #16181c;
+    --boitier: #23272e;
+  }
+}
+
+/* ===== Page ===== */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  display: grid;
+  place-items: center;
+  background: var(--fond);
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+/* ===== Boîtier de la calculatrice ===== */
+.calculatrice {
+  width: min(92vw, 340px);
+  padding: 18px;
+  background: var(--boitier);
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* ===== Écran ===== */
+.ecran {
+  background: var(--ecran);
+  color: var(--encre);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  text-align: right;
+  min-height: 86px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+
+.historique {
+  font-size: 0.9rem;
+  opacity: 0.65;
+  min-height: 1.2em;
+  word-break: break-all;
+}
+
+.resultat {
+  font-size: 2.2rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
+/* ===== Grille des touches ===== */
+.touches {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+button {
+  font: inherit;
+  font-size: 1.25rem;
+  padding: 16px 0;
+  border: 0;
+  border-radius: 10px;
+  background: var(--touche);
+  color: var(--touche-texte);
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.05s;
+}
+
+button:hover {
+  filter: brightness(1.15);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button:focus-visible {
+  outline: 3px solid var(--egal);
+  outline-offset: 2px;
+}
+
+/* ===== Variantes de touches ===== */
+.op {
+  background: var(--operateur);
+}
+
+.effacer {
+  background: var(--effacer);
+}
+
+.egal {
+  background: var(--egal);
+  color: var(--egal-texte);
+  grid-row: span 2;
+}
+
+.zero {
+  grid-column: span 2;
+}
